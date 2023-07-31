@@ -88,15 +88,17 @@ class DatasetIterator:
     def __init__(self,
                  df,
                  tokenizer,
-                 max_load_at_once,
-                 max_length=128,
+                 max_load_at_once=100,
+                 input_max_length=512,
+                 output_max_length=128,
                  shuffle=True):
 
         self.df = df
         self.tokenizer = tokenizer
         self.n_examples = len(df)
         self.max_load_at_once = max_load_at_once
-        self.max_length = max_length
+        self.input_max_length = input_max_length
+        self.output_max_length = output_max_length
         self.shuffle = shuffle
 
         # Initialize row order, call on_epoch_end to shuffle row indices
@@ -129,7 +131,8 @@ class DatasetIterator:
         item_data = preprocess_data(
             text_pair,
             self.tokenizer,
-            self.max_length
+            self.input_max_length,
+            self.output_max_length
         )
 
         return item_data
