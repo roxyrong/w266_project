@@ -46,10 +46,10 @@ class BaseModel:
         self.trainer.train()
         
     def train_from_checkpoint(self, last_check_point):
-        self.trainer(resume_from_checkpoint= last_check_point)
+        self.trainer.train(resume_from_checkpoint=last_check_point)
         
     def evaluate(self):
-        self.trainer.evaluate()
+        print(self.trainer.evaluate())
         
     def model_save(self, model_path):
         self.trainer.save_model(model_path)
