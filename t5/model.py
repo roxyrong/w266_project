@@ -1,4 +1,4 @@
-from dataset import DatasetIterator
+from t5.dataset import DatasetIterator
 from transformers import Seq2SeqTrainingArguments, Seq2SeqTrainer
 
 
@@ -7,7 +7,8 @@ def set_train_arguments(train_path,
                         num_epochs,
                         learning_rate,
                         evaluation_strategy="epoch",
-                        save_strategy="epoch"):
+                        save_strategy="epoch",
+                        **kwargs):
     args = Seq2SeqTrainingArguments(
         train_path,
         evaluation_strategy=evaluation_strategy,
@@ -15,7 +16,8 @@ def set_train_arguments(train_path,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
         num_train_epochs=num_epochs,
-        learning_rate=learning_rate
+        learning_rate=learning_rate,
+        **kwargs
     )
     return args
 
@@ -27,6 +29,7 @@ class BaseModel:
                  train_data_iterator:DatasetIterator,
                  valid_data_iterator:DatasetIterator,
                  seq2seq_train_args: Seq2SeqTrainingArguments,
+                 **kwargs
                  ):
         self.model = model
         self.hug_model_name = hug_model_name
@@ -35,7 +38,8 @@ class BaseModel:
             self.model,
             seq2seq_train_args,
             train_dataset=train_data_iterator,
-            eval_dataset=valid_data_iterator
+            eval_dataset=valid_data_iterator,
+            **kwargs
         )
     
     def train(self):

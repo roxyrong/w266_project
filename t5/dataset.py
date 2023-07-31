@@ -32,11 +32,11 @@ def schema_linking(train_spider, others_spider, dev_spider, schema_dict):
 
 def load_spider_datasets():
     # datasets
-    with open('../spider/train_spider.json', 'r') as f:
+    with open('spider/train_spider.json', 'r') as f:
         train_spider = pd.read_json(f)
-    with open('../spider/train_others.json', 'r') as f:
+    with open('spider/train_others.json', 'r') as f:
         others_spider = pd.read_json(f)
-    with open('../spider/dev.json', 'r') as f:
+    with open('spider/dev.json', 'r') as f:
         dev_spider = pd.read_json(f)
         
     # load schema for all tables
