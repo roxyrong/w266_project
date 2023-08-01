@@ -25,14 +25,12 @@ def set_train_arguments(train_path,
 class BaseModel:
     def __init__(self,
                  model,
-                 hug_model_name:str,
                  train_data_iterator:DatasetIterator,
                  valid_data_iterator:DatasetIterator,
                  seq2seq_train_args: Seq2SeqTrainingArguments,
                  **kwargs
                  ):
         self.model = model
-        self.hug_model_name = hug_model_name
 
         self.trainer = Seq2SeqTrainer(
             self.model,
@@ -54,5 +52,5 @@ class BaseModel:
     def model_save(self, model_path):
         self.trainer.save_model(model_path)
     
-    def model_upload(self):
-        self.model.push_to_hub(f"RoxyRong/{self.hug_model_name}", use_auth_token=True)
+    def model_upload(self, hug_model_name):
+        self.model.push_to_hub(hug_model_name, use_auth_token=True)

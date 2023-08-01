@@ -10,9 +10,7 @@ def inference(dev_spider, model, tokenizer, result_path):
         print(idx)
         inputs = tokenizer.batch_encode_plus(
             list(dev_spider.iloc[idx:idx+step]['prompt']),
-            max_length=input_max_length,
-            padding='max_length',
-            truncation=True,
+            padding=True,
             return_attention_mask=True,
             return_tensors='pt'
         )
