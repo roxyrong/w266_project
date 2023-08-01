@@ -3,14 +3,6 @@ import numpy as np
 import pandas as pd
 
 
-PROMPT_1_SHOT = """
-Context: | ref_document_types : document_type_code , document_type_description | roles : role_code , role_description | addresses : address_id , address_details | ref_document_status : document_status_code , document_status_description | ref_shipping_agents : shipping_agent_code , shipping_agent_name , shipping_agent_description | documents : document_id , document_status_code , document_type_code , shipping_agent_code , receipt_date , receipt_number , other_details | employees : employee_id , role_code , employee_name , other_details | document_drafts : document_id , draft_number , draft_details | draft_copies : document_id , draft_number , copy_number | circulation_history : document_id , draft_number , copy_number , employee_id | documents_mailed : document_id , mailed_to_address_id , mailing_date
-Question: Which employee has showed up in most circulation history documents. List the employee's name and the number of drafts and copies.\n"
-Answer: SELECT Employees.employee_name , count(*) FROM Employees JOIN Circulation_History ON Circulation_History.employee_id = Employees.employee_id GROUP BY Circulation_History.document_id , Circulation_History.draft_number , Circulation_History.copy_number ORDER BY count(*) DESC LIMIT 1;
-###
-"""
-
-
 def get_schema_string(table_json):
     """Returns the schema serialized as a string."""
     table_id_to_column_names = collections.defaultdict(list)
@@ -27,24 +19,18 @@ def get_schema_string(table_json):
 
 
 def schema_linking(train_spider, others_spider, dev_spider, schema_dict):
-    fixed_few_shot_prefix = """
-               Context:| member : member_id , card_number , name , hometown , level | branch : branch_id , name , open_year , address_road , city , membership_amount | membership_register_branch : member_id , branch_id , register_year | purchase : member_id , branch_id , year , total_pounds
-               Question: What are names for top three branches with most number of membership?
-               Answer: SELECT name FROM branch ORDER BY membership_amount DESC LIMIT 3
-               ###
-               Context: """
-
-    fixed_few_shot_infix = "\n Question: "
-    fixed_few_shot_postfix = "\n Answer: "
+    fixed_prefix = "Database Schema: "
+    fixed_infix = "\n Question: "
+    fixed_postfix = "\n Answer: "
 
     train_spider['schema'] = train_spider['db_id'].map(schema_dict)
-    train_spider['prompt'] = fixed_few_shot_prefix + train_spider['schema'] + fixed_few_shot_infix + train_spider['question'] + fixed_few_shot_postfix
+    train_spider['prompt'] = fixed_prefix + train_spider['schema'] + fixed_infix + train_spider['question'] + fixed_postfix
 
     others_spider['schema'] = others_spider['db_id'].map(schema_dict)
-    others_spider['prompt'] = fixed_few_shot_prefix + others_spider['schema'] + fixed_few_shot_infix + others_spider['question'] + fixed_few_shot_postfix
+    others_spider['prompt'] = fixed_prefix + others_spider['schema'] + fixed_infix + others_spider['question'] + fixed_postfix
 
     dev_spider['schema'] = dev_spider['db_id'].map(schema_dict)
-    dev_spider['prompt'] = fixed_few_shot_prefix + dev_spider['schema'] + fixed_few_shot_infix + dev_spider['question'] + fixed_few_shot_postfix
+    dev_spider['prompt'] = fixed_prefix + dev_spider['schema'] + fixed_infix + dev_spider['question'] + fixed_postfix
     return train_spider, others_spider, dev_spider
 
 
@@ -71,26 +57,26 @@ def load_spider_datasets():
     return train_spider, others_spider, dev_spider
 
 
-def preprocess_data(text_pair, tokenizer, input_max_length=512, output_max_length=128):
+def preprocess_data(text_pair, tokenizer, input_max_length=128, output_max_length=128):
     orig_text, target_text = text_pair
     orig_encoded = tokenizer.batch_encode_plus(
         [orig_text],
-        max_length=input_max_length,
         padding='max_length',
         truncation=True,
         return_attention_mask=True,
-        return_tensors='pt'
+        max_length=input_max_length,
+        return_tensors="pt"
     )
-
+    
     orig_input_ids = orig_encoded['input_ids'][0]
     orig_attention_mask = orig_encoded['attention_mask'][0]
 
     target_encoded = tokenizer.batch_encode_plus(
         [target_text],
-        max_length=output_max_length,
         padding='max_length',
         truncation=True,
-        return_attention_mask=True,
+        max_length=output_max_length,
+        return_attention_mask=False,
         return_tensors='pt'
     )
 
@@ -107,7 +93,7 @@ class DatasetIterator:
                  df,
                  tokenizer,
                  max_load_at_once=100,
-                 input_max_length=512,
+                 input_max_length=128,
                  output_max_length=128,
                  shuffle=True):
 
